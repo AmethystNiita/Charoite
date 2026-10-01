@@ -1,0 +1,1867 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Charoite</title>
+
+  <style>
+    :root {
+      --bg: #17121f;
+      --bar: #241a31;
+      --bar-light: #30233f;
+      --purple: #9d7ac7;
+      --purple-light: #c8a9ed;
+      --text: #eee5f8;
+
+      --page: #211a29;
+      --page-text: #eee5f8;
+      --page-border: #3c2c4b;
+
+      --shadow: rgba(0, 0, 0, 0.35);
+
+      --ui-font:
+        "Segoe UI",
+        -apple-system,
+        BlinkMacSystemFont,
+        "San Francisco",
+        "Roboto",
+        "Noto Sans",
+        "Liberation Sans",
+        Arial,
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ui-font);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 48px;
+      min-height: 48px;
+
+      background: var(--bar);
+
+      border-bottom: 1px solid #3c2b4c;
+
+      display: flex;
+      align-items: center;
+
+      padding: 0 12px;
+      gap: 4px;
+
+      box-shadow: 0 3px 12px var(--shadow);
+
+      z-index: 10;
+    }
+
+    .menu {
+      position: relative;
+    }
+
+    .menu-button {
+      border: 0;
+      background: transparent;
+
+      color: var(--text);
+
+      padding: 8px 12px;
+
+      border-radius: 7px;
+
+      font-family: var(--ui-font);
+      font-size: 14px;
+
+      cursor: pointer;
+    }
+
+    .menu-button:hover,
+    .menu-button.active {
+      background: var(--bar-light);
+      color: var(--purple-light);
+    }
+
+    .dropdown {
+      position: absolute;
+
+      top: 40px;
+      left: 0;
+
+      min-width: 190px;
+
+      background: #21172c;
+
+      border: 1px solid #49345d;
+      border-radius: 9px;
+
+      padding: 6px;
+
+      box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.4);
+
+      display: none;
+
+      z-index: 50;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .dropdown button,
+    .font-size-control {
+      width: 100%;
+
+      border: 0;
+      background: transparent;
+
+      color: var(--text);
+
+      padding: 9px 10px;
+
+      border-radius: 6px;
+
+      font-family: var(--ui-font);
+      font-size: 14px;
+
+      text-align: left;
+
+      cursor: pointer;
+    }
+
+    .dropdown button:hover {
+      background: var(--bar-light);
+      color: var(--purple-light);
+    }
+
+    .separator {
+      height: 1px;
+      background: #49345d;
+      margin: 5px 4px;
+    }
+
+    .font-size-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+    }
+
+    .font-size-control input {
+      width: 65px;
+
+      margin-left: auto;
+
+      background: #17121f;
+
+      border: 1px solid #4a365b;
+      border-radius: 5px;
+
+      color: var(--text);
+
+      padding: 4px 6px;
+
+      outline: none;
+
+      font-family: var(--ui-font);
+    }
+
+    .font-size-control input:focus {
+      border-color: var(--purple);
+    }
+
+    .document-name {
+      margin-left: auto;
+
+      width: 220px;
+
+      background: #1b1424;
+
+      border: 1px solid #443152;
+
+      color: var(--text);
+
+      border-radius: 7px;
+
+      padding: 7px 10px;
+
+      outline: none;
+
+      font-family: var(--ui-font);
+      font-size: 14px;
+    }
+
+    .document-name:focus {
+      border-color: var(--purple);
+
+      box-shadow:
+        0 0 0 2px rgba(157, 122, 199, 0.12);
+    }
+
+    .workspace {
+      flex: 1;
+
+      overflow: auto;
+
+      padding: 28px;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .page {
+      width: 100%;
+
+      min-height: calc(100vh - 104px);
+
+      background: var(--page);
+      color: var(--page-text);
+
+      padding: 38px 40px;
+
+      border: 1px solid var(--page-border);
+
+      border-radius: 2px;
+
+      box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.025);
+
+      outline: none;
+
+      font-family: var(--ui-font);
+      font-size: 16px;
+      line-height: 1.65;
+
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+
+      spellcheck: false;
+    }
+
+    .page:focus {
+      border-color: #59416d;
+
+      box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(157, 122, 199, 0.25);
+    }
+
+    .page:empty::before {
+      content: "";
+      color: #83768d;
+      pointer-events: none;
+    }
+
+    @media (max-width: 700px) {
+      .workspace {
+        padding: 12px;
+      }
+
+      .page {
+        padding: 30px 28px;
+      }
+
+      .document-name {
+        width: 140px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+
+    <!-- file menu -->
+
+    <div class="menu">
+      <button
+        class="menu-button"
+        id="fileButton"
+      >
+        file
+      </button>
+
+      <div
+        class="dropdown"
+        id="fileMenu"
+      >
+
+        <button id="newButton">
+          new
+        </button>
+
+        <button id="loadButton">
+          load
+        </button>
+
+        <button id="saveButton">
+          save
+        </button>
+
+        <button id="exportButton">
+          export
+        </button>
+
+        <div class="separator"></div>
+
+        <button id="copyButton">
+          copy
+        </button>
+
+        <button id="pasteButton">
+          paste
+        </button>
+
+      </div>
+    </div>
+
+
+    <!-- edit menu -->
+
+    <div class="menu">
+      <button
+        class="menu-button"
+        id="editButton"
+      >
+        edit
+      </button>
+
+      <div
+        class="dropdown"
+        id="editMenu"
+      >
+
+        <button id="fontButton">
+          load font
+        </button>
+
+        <label class="font-size-control">
+          font size
+
+          <input
+            id="fontSizeInput"
+            type="number"
+            min="6"
+            max="200"
+            value="16"
+            spellcheck="false"
+            autocomplete="off"
+          >
+        </label>
+
+        <div class="separator"></div>
+
+        <button id="boldButton">
+          bold
+        </button>
+
+        <button id="italicButton">
+          italic
+        </button>
+
+        <button id="underlineButton">
+          underline
+        </button>
+
+      </div>
+    </div>
+
+
+    <!-- hidden file pickers -->
+
+    <input
+      id="loadInput"
+      type="file"
+      accept=".txt,.charoite,text/plain"
+      hidden
+    >
+
+    <input
+      id="fontInput"
+      type="file"
+      accept=".ttf,.otf,.woff,.woff2"
+      hidden
+    >
+
+
+    <!-- document name -->
+
+    <input
+      id="documentName"
+      class="document-name"
+      type="text"
+      value="untitled"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      aria-label="document name"
+    >
+
+  </div>
+
+
+  <!-- document -->
+
+  <main class="workspace">
+
+    <div
+      id="page"
+      class="page"
+      contenteditable="true"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      data-gramm="false"
+      data-gramm_editor="false"
+      data-enable-grammarly="false"
+    ></div>
+
+  </main>
+
+
+  <script>
+    const STORAGE_KEY =
+      "charoite-document";
+
+    const page =
+      document.getElementById("page");
+
+    const fileButton =
+      document.getElementById("fileButton");
+
+    const editButton =
+      document.getElementById("editButton");
+
+    const fileMenu =
+      document.getElementById("fileMenu");
+
+    const editMenu =
+      document.getElementById("editMenu");
+
+    const newButton =
+      document.getElementById("newButton");
+
+    const loadButton =
+      document.getElementById("loadButton");
+
+    const saveButton =
+      document.getElementById("saveButton");
+
+    const exportButton =
+      document.getElementById("exportButton");
+
+    const copyButton =
+      document.getElementById("copyButton");
+
+    const pasteButton =
+      document.getElementById("pasteButton");
+
+    const fontButton =
+      document.getElementById("fontButton");
+
+    const loadInput =
+      document.getElementById("loadInput");
+
+    const fontInput =
+      document.getElementById("fontInput");
+
+    const fontSizeInput =
+      document.getElementById("fontSizeInput");
+
+    const boldButton =
+      document.getElementById("boldButton");
+
+    const italicButton =
+      document.getElementById("italicButton");
+
+    const underlineButton =
+      document.getElementById("underlineButton");
+
+    const documentName =
+      document.getElementById("documentName");
+
+
+    let customFontName = null;
+    let customFontData = null;
+
+
+    /* local storage */
+
+    function saveState() {
+
+      const state = {
+        content: page.innerHTML,
+        name: documentName.value,
+        fontSize:
+          page.style.fontSize || "16px",
+        customFontName:
+          customFontName,
+        customFontData:
+          customFontData
+      };
+
+      try {
+
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(state)
+        );
+
+      } catch {
+
+        try {
+
+          const smallerState = {
+            content: page.innerHTML,
+            name: documentName.value,
+            fontSize:
+              page.style.fontSize || "16px",
+            customFontName: null,
+            customFontData: null
+          };
+
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(smallerState)
+          );
+
+        } catch {
+          /* localstorage unavailable */
+        }
+      }
+    }
+
+
+    function loadState() {
+
+      const saved =
+        localStorage.getItem(
+          STORAGE_KEY
+        );
+
+      if (!saved) {
+        return;
+      }
+
+      try {
+
+        const state =
+          JSON.parse(saved);
+
+        page.innerHTML =
+          state.content || "";
+
+        documentName.value =
+          state.name || "untitled";
+
+        page.style.fontSize =
+          state.fontSize || "16px";
+
+        fontSizeInput.value =
+          parseInt(
+            state.fontSize || "16",
+            10
+          );
+
+
+        if (
+          state.customFontName &&
+          state.customFontData
+        ) {
+
+          installCustomFont(
+            state.customFontName,
+            state.customFontData
+          );
+        }
+
+      } catch {
+        /* start fresh */
+      }
+    }
+
+
+    /* menus */
+
+    function closeMenus() {
+
+      fileMenu.classList.remove("show");
+      editMenu.classList.remove("show");
+
+      fileButton.classList.remove("active");
+      editButton.classList.remove("active");
+    }
+
+
+    fileButton.addEventListener(
+      "click",
+      function(event) {
+
+        event.stopPropagation();
+
+        const wasOpen =
+          fileMenu.classList.contains(
+            "show"
+          );
+
+        closeMenus();
+
+        if (!wasOpen) {
+
+          fileMenu.classList.add("show");
+          fileButton.classList.add("active");
+
+        }
+      }
+    );
+
+
+    editButton.addEventListener(
+      "click",
+      function(event) {
+
+        event.stopPropagation();
+
+        const wasOpen =
+          editMenu.classList.contains(
+            "show"
+          );
+
+        closeMenus();
+
+        if (!wasOpen) {
+
+          editMenu.classList.add("show");
+          editButton.classList.add("active");
+
+        }
+      }
+    );
+
+
+    document.addEventListener(
+      "click",
+      closeMenus
+    );
+
+
+    fileMenu.addEventListener(
+      "click",
+      event => event.stopPropagation()
+    );
+
+
+    editMenu.addEventListener(
+      "click",
+      event => event.stopPropagation()
+    );
+
+
+    /* new */
+
+    newButton.addEventListener(
+      "click",
+      function() {
+
+        page.innerHTML = "";
+
+        documentName.value =
+          "untitled";
+
+        page.style.fontSize =
+          "16px";
+
+        fontSizeInput.value =
+          "16";
+
+
+        customFontName = null;
+        customFontData = null;
+
+
+        const oldStyle =
+          document.getElementById(
+            "custom-font-style"
+          );
+
+        if (oldStyle) {
+          oldStyle.remove();
+        }
+
+
+        page.style.fontFamily = "";
+
+
+        localStorage.removeItem(
+          STORAGE_KEY
+        );
+
+
+        page.focus();
+
+        closeMenus();
+      }
+    );
+
+
+    /* Charoite format */
+
+    /*
+      Charoite formatting:
+        *text*                  italic
+        **text**                bold
+        ***text***              bold + italic
+        __text__                underline
+        __**text**__            bold + underline
+        __*text*__              italic + underline
+        __***text***__          bold + italic + underline
+
+      Literal formatting characters are escaped:
+        \*  \_  \\
+
+      A .charoite file is still just UTF-8 text.
+    */
+
+    function getNodeFormatting(node) {
+      const formatting = {
+        bold: false,
+        italic: false,
+        underline: false
+      };
+
+      let current = node.parentElement;
+
+      while (current && current !== page) {
+        const tag = current.tagName.toLowerCase();
+
+        if (tag === "b" || tag === "strong") {
+          formatting.bold = true;
+        }
+
+        if (tag === "i" || tag === "em") {
+          formatting.italic = true;
+        }
+
+        if (tag === "u") {
+          formatting.underline = true;
+        }
+
+        current = current.parentElement;
+      }
+
+      return formatting;
+    }
+
+    function escapeCharoiteText(text) {
+      return text
+        .replace(/\\/g, "\\\\")
+        .replace(/\*/g, "\\*")
+        .replace(/_/g, "\\_");
+    }
+
+    function formattingPrefix(formatting) {
+      if (
+        formatting.bold &&
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "__***";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.underline
+      ) {
+        return "__**";
+      }
+
+      if (
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "__*";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.italic
+      ) {
+        return "***";
+      }
+
+      if (formatting.bold) {
+        return "**";
+      }
+
+      if (formatting.italic) {
+        return "*";
+      }
+
+      if (formatting.underline) {
+        return "__";
+      }
+
+      return "";
+    }
+
+    function formattingSuffix(formatting) {
+      if (
+        formatting.bold &&
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "***__";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.underline
+      ) {
+        return "**__";
+      }
+
+      if (
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "*__";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.italic
+      ) {
+        return "***";
+      }
+
+      if (formatting.bold) {
+        return "**";
+      }
+
+      if (formatting.italic) {
+        return "*";
+      }
+
+      if (formatting.underline) {
+        return "__";
+      }
+
+      return "";
+    }
+
+    function getEmbeddedFontInfo() {
+      if (!customFontData) {
+        return null;
+      }
+
+      const match = customFontData.match(
+        /^data:([^;,]+);base64,([A-Za-z0-9+/=]+)$/
+      );
+
+      if (!match) {
+        return null;
+      }
+
+      return {
+        mime: match[1],
+        base64: match[2]
+      };
+    }
+
+    function charoiteFromDom() {
+      let output = "";
+
+      function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = escapeCharoiteText(node.nodeValue);
+          const formatting = getNodeFormatting(node);
+
+          if (!text) {
+            return;
+          }
+
+          const prefix = formattingPrefix(formatting);
+          const suffix = formattingSuffix(formatting);
+
+          output += prefix + text + suffix;
+          return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return;
+        }
+
+        if (node.tagName.toLowerCase() === "br") {
+          output += "\n";
+          return;
+        }
+
+        for (const child of node.childNodes) {
+          walk(child);
+        }
+      }
+
+      for (const child of page.childNodes) {
+        walk(child);
+      }
+
+      return output;
+    }
+
+function escapeHeaderValue(value) {
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"');
+}
+
+function parseCharoiteHeader(line) {
+  const match =
+    line.match(/^\s*\[(.*)\]\s*$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const attributes = {};
+
+  const attributePattern =
+    /([A-Za-z0-9_-]+)\s*=\s*"((?:\\.|[^"])*)"/g;
+
+  let attributeMatch;
+
+  while (
+    (attributeMatch =
+      attributePattern.exec(match[1])) !== null
+  ) {
+    const key =
+      attributeMatch[1];
+
+    const value =
+      attributeMatch[2].replace(
+        /\\(["\\])/g,
+        "$1"
+      );
+
+    attributes[key] = value;
+  }
+
+  return attributes;
+}
+
+
+function makeCharoiteFile() {
+  const font =
+    getEmbeddedFontInfo();
+
+  const content =
+    charoiteFromDom();
+
+  const fontSize =
+    parseInt(page.style.fontSize || "16", 10) || 16;
+
+  let header =
+    '[file="charoite", font-size="' +
+    fontSize +
+    '"';
+
+  if (font) {
+    header +=
+      ', font-mime="' +
+      escapeHeaderValue(font.mime) +
+      '"';
+
+    header +=
+      ', font-base64="' +
+      escapeHeaderValue(font.base64) +
+      '"';
+  }
+
+  header += "]";
+
+  return (
+    header +
+    "\n\n" +
+    content
+  );
+}
+
+    function plainTextFromDom() {
+      return page.innerText.replace(/\u00a0/g, " ");
+    }
+
+    async function saveTextFile(text, filename) {
+      const blob = new Blob(
+        [text],
+        { type: "text/plain;charset=utf-8" }
+      );
+
+      if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [
+              {
+                description: filename.toLowerCase().endsWith(".charoite")
+                  ? "Charoite file"
+                  : "Text file",
+                accept: filename.toLowerCase().endsWith(".charoite")
+                  ? {
+                      "application/x-charoite": [".charoite"]
+                    }
+                  : {
+                      "text/plain": [".txt"]
+                    }
+              }
+            ]
+          });
+
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return true;
+        } catch (error) {
+          if (error && error.name === "AbortError") {
+            return false;
+          }
+          console.error("Could not use the save dialog:", error);
+        }
+      }
+
+      // On mobile browsers that do not support the File System Access API,
+      // use the native share sheet when it can share files. This gives the
+      // user access to file managers and other "save to" destinations.
+      try {
+        const file = new File([blob], filename, {
+          type: "text/plain"
+        });
+
+        if (navigator.share &&
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: filename
+          });
+          return true;
+        }
+      } catch (error) {
+        if (error && error.name === "AbortError") {
+          return false;
+        }
+        console.error("Could not use the mobile share sheet:", error);
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = filename;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+      return true;
+    }
+
+    function isEscaped(text, index) {
+      let slashCount = 0;
+
+      for (let i = index - 1; i >= 0 && text[i] === "\\"; i--) {
+        slashCount++;
+      }
+
+      return slashCount % 2 === 1;
+    }
+
+    function findClosingToken(text, token, start) {
+      let index = start;
+
+      while (index < text.length) {
+        const found = text.indexOf(token, index);
+
+        if (found === -1) {
+          return -1;
+        }
+
+        if (!isEscaped(text, found)) {
+          return found;
+        }
+
+        index = found + token.length;
+      }
+
+      return -1;
+    }
+
+    function appendParsedText(parent, text) {
+      let buffer = "";
+
+      function flush() {
+        if (buffer) {
+          parent.appendChild(
+            document.createTextNode(buffer)
+          );
+          buffer = "";
+        }
+      }
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (char === "\\") {
+          const next = text[i + 1];
+
+          if (
+            next === "\\" ||
+            next === "*" ||
+            next === "_"
+          ) {
+            buffer += next;
+            i++;
+            continue;
+          }
+        }
+
+        if (char === "\n") {
+          flush();
+          parent.appendChild(
+            document.createElement("br")
+          );
+          continue;
+        }
+
+        buffer += char;
+      }
+
+      flush();
+    }
+
+    function parseCharoite(text) {
+      const fragment = document.createDocumentFragment();
+
+      const patterns = [
+        {
+          open: "__***",
+          close: "***__",
+          tags: ["u", "strong", "em"]
+        },
+        {
+          open: "__**",
+          close: "**__",
+          tags: ["u", "strong"]
+        },
+        {
+          open: "__*",
+          close: "*__",
+          tags: ["u", "em"]
+        },
+        {
+          open: "***",
+          close: "***",
+          tags: ["strong", "em"]
+        },
+        {
+          open: "**",
+          close: "**",
+          tags: ["strong"]
+        },
+        {
+          open: "__",
+          close: "__",
+          tags: ["u"]
+        },
+        {
+          open: "*",
+          close: "*",
+          tags: ["em"]
+        }
+      ];
+
+      function parseRange(parent, source, start, end) {
+        let plainStart = start;
+
+        function flushPlain(until) {
+          if (until <= plainStart) {
+            return;
+          }
+
+          appendParsedText(
+            parent,
+            source.slice(plainStart, until)
+          );
+        }
+
+        let i = start;
+
+        while (i < end) {
+          if (source[i] === "\\") {
+            i += 2;
+            continue;
+          }
+
+          let matched = null;
+
+          for (const pattern of patterns) {
+            if (
+              source.startsWith(pattern.open, i) &&
+              i + pattern.open.length <= end
+            ) {
+              const closeIndex =
+                findClosingToken(
+                  source,
+                  pattern.close,
+                  i + pattern.open.length
+                );
+
+              if (
+                closeIndex !== -1 &&
+                closeIndex < end
+              ) {
+                matched = {
+                  pattern,
+                  closeIndex
+                };
+                break;
+              }
+            }
+          }
+
+          if (!matched) {
+            i++;
+            continue;
+          }
+
+          flushPlain(i);
+
+          const elementStack = [];
+          let container = parent;
+
+          for (const tag of matched.pattern.tags) {
+            const element =
+              document.createElement(tag);
+
+            container.appendChild(element);
+            elementStack.push(element);
+            container = element;
+          }
+
+          parseRange(
+            container,
+            source,
+            i + matched.pattern.open.length,
+            matched.closeIndex
+          );
+
+          i =
+            matched.closeIndex +
+            matched.pattern.close.length;
+
+          plainStart = i;
+        }
+
+        flushPlain(end);
+      }
+
+      parseRange(
+        fragment,
+        text,
+        0,
+        text.length
+      );
+
+      return fragment;
+    }
+
+function setLoadedDocumentName(filename) {
+  const name =
+    filename.replace(
+      /\.(txt|charoite)$/i,
+      ""
+    );
+
+  documentName.value =
+    name || "untitled";
+}
+
+
+function loadCharoite(text) {
+
+  // Normalize Windows/macOS line endings so Charoite
+  // always interprets each newline consistently.
+  text = text.replace(/\r\n?/g, "\n");
+
+  const firstNewline =
+    text.indexOf("\n");
+
+  if (firstNewline === -1) {
+    page.textContent = text;
+    return;
+  }
+
+  const headerLine =
+    text
+      .slice(0, firstNewline)
+      .replace(/\r$/, "");
+
+  const attributes =
+    parseCharoiteHeader(headerLine);
+
+  /*
+    Charoite only activates when the
+    header exists and file="charoite".
+  */
+
+  if (
+    !attributes ||
+    attributes.file !== "charoite"
+  ) {
+    page.textContent = text;
+    return;
+  }
+
+  /*
+    Skip the blank line after
+    the Charoite header.
+  */
+
+  let contentStart =
+    firstNewline + 1;
+
+  if (
+    text.startsWith(
+      "\n",
+      contentStart
+    )
+  ) {
+    contentStart += 1;
+  }
+
+  const content =
+    text.slice(contentStart);
+
+  /*
+    Optional document font size.
+  */
+
+  const savedFontSize =
+    parseInt(attributes["font-size"], 10);
+
+  if (
+    Number.isFinite(savedFontSize)
+  ) {
+    const clampedFontSize =
+      Math.max(6, Math.min(200, savedFontSize));
+
+    page.style.fontSize =
+      clampedFontSize + "px";
+
+    fontSizeInput.value =
+      clampedFontSize;
+  }
+
+
+  /*
+    Optional embedded font.
+  */
+
+  const fontMime =
+    attributes["font-mime"];
+
+  const fontBase64 =
+    attributes["font-base64"];
+
+  const validBase64 =
+    typeof fontBase64 === "string" &&
+    fontBase64.length > 0 &&
+    /^[A-Za-z0-9+/]*={0,2}$/.test(
+      fontBase64
+    );
+
+  const validMime =
+    typeof fontMime === "string" &&
+    (
+      /^font\/[A-Za-z0-9.+-]+$/i.test(
+        fontMime
+      ) ||
+      fontMime ===
+        "application/octet-stream"
+    );
+
+  if (
+    validBase64 &&
+    validMime
+  ) {
+    const dataUrl =
+      "data:" +
+      fontMime +
+      ";base64," +
+      fontBase64;
+
+    installCustomFont(
+      "luni-custom-font",
+      dataUrl
+    );
+  } else {
+    // A Charoite file without an embedded font returns to
+    // the editor's default font. Font size is kept from the file.
+    customFontName = null;
+    customFontData = null;
+
+    const oldStyle =
+      document.getElementById(
+        "custom-font-style"
+      );
+
+    if (oldStyle) {
+      oldStyle.remove();
+    }
+
+    page.style.fontFamily = "";
+  }
+
+  /*
+    Now interpret Charoite formatting.
+  */
+
+  page.innerHTML = "";
+
+  page.appendChild(
+    parseCharoite(content)
+  );
+}
+
+    /* load .txt or .charoite */
+
+    loadButton.addEventListener(
+      "click",
+      function() {
+        loadInput.click();
+        closeMenus();
+      }
+    );
+
+    loadInput.addEventListener(
+      "change",
+      function(event) {
+        const file =
+          event.target.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+          const text =
+            e.target.result;
+
+          if (
+            /\.charoite$/i.test(file.name)
+          ) {
+            loadCharoite(text);
+          } else {
+            page.textContent = text;
+          }
+
+          setLoadedDocumentName(file.name);
+
+          saveState();
+          page.focus();
+        };
+
+        reader.readAsText(file);
+        loadInput.value = "";
+      }
+    );
+
+    /* save .charoite */
+
+    saveButton.addEventListener(
+      "click",
+      function() {
+        const text =
+          makeCharoiteFile();
+
+        const name =
+          documentName.value.trim()
+          || "untitled";
+
+        const filename =
+          name.replace(
+            /\.(txt|charoite)$/i,
+            ""
+          ) + ".charoite";
+
+        saveTextFile(
+          text,
+          filename
+        ).then(function(saved) {
+          if (saved) {
+            saveState();
+            closeMenus();
+          }
+        });
+      }
+    );
+
+    /* export plain .txt */
+
+    exportButton.addEventListener(
+      "click",
+      function() {
+        const text =
+          plainTextFromDom();
+
+        const name =
+          documentName.value.trim()
+          || "untitled";
+
+        const filename =
+          name.replace(
+            /\.(txt|charoite)$/i,
+            ""
+          ) + ".txt";
+
+        saveTextFile(
+          text,
+          filename
+        ).then(function(saved) {
+          if (saved) {
+            saveState();
+            closeMenus();
+          }
+        });
+      }
+    );
+
+    /* copy */
+
+    copyButton.addEventListener(
+      "click",
+      async function() {
+
+        const selection =
+          window.getSelection();
+
+        const selectedText =
+          selection
+            ? selection.toString()
+            : "";
+
+        try {
+
+          await navigator.clipboard.writeText(
+            selectedText || page.innerText
+          );
+
+        } catch {
+
+          try {
+            document.execCommand("copy");
+          } catch {
+            /* unavailable */
+          }
+        }
+
+        closeMenus();
+      }
+    );
+
+
+    /* paste */
+
+    pasteButton.addEventListener(
+      "click",
+      async function() {
+
+        page.focus();
+
+        try {
+
+          const text =
+            await navigator.clipboard.readText();
+
+          document.execCommand(
+            "insertText",
+            false,
+            text
+          );
+
+          saveState();
+
+        } catch {
+          /* browser permission denied */
+        }
+
+        closeMenus();
+      }
+    );
+
+
+    /* load font */
+
+    fontButton.addEventListener(
+      "click",
+      function() {
+
+        fontInput.click();
+
+        closeMenus();
+      }
+    );
+
+
+    fontInput.addEventListener(
+      "change",
+      function(event) {
+
+        const file =
+          event.target.files[0];
+
+        if (!file) {
+          return;
+        }
+
+
+        const fontName =
+          "luni-custom-font";
+
+
+        const reader =
+          new FileReader();
+
+
+        reader.onload =
+          function(e) {
+
+            const dataUrl = e.target.result;
+
+            if (
+              typeof dataUrl !== "string" ||
+              !/^data:[^;,]+;base64,[A-Za-z0-9+/=]+$/.test(dataUrl)
+            ) {
+              return;
+            }
+
+            installCustomFont(
+              fontName,
+              dataUrl
+            );
+
+            saveState();
+          };
+
+
+        reader.readAsDataURL(file);
+
+        fontInput.value = "";
+      }
+    );
+
+
+    /* install custom font */
+
+    function installCustomFont(
+      fontName,
+      fontData
+    ) {
+
+      customFontName = fontName;
+      customFontData = fontData;
+
+      const oldStyle =
+        document.getElementById(
+          "custom-font-style"
+        );
+
+      if (oldStyle) {
+        oldStyle.remove();
+      }
+
+      const style =
+        document.createElement("style");
+
+      style.id =
+        "custom-font-style";
+
+      style.textContent = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${fontData}");
+        }
+
+        .page {
+          font-family:
+            "${fontName}",
+            var(--ui-font);
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
+
+
+    /* font size */
+
+    fontSizeInput.addEventListener(
+      "input",
+      function() {
+
+        let size =
+          Number(
+            fontSizeInput.value
+          );
+
+        if (!size) {
+          size = 16;
+        }
+
+        size =
+          Math.max(
+            6,
+            Math.min(200, size)
+          );
+
+        page.style.fontSize =
+          size + "px";
+
+        saveState();
+      }
+    );
+
+
+    /* formatting */
+
+    function format(command) {
+
+      page.focus();
+
+      document.execCommand(
+        command,
+        false,
+        null
+      );
+
+      saveState();
+    }
+
+
+    boldButton.addEventListener(
+      "click",
+      () => format("bold")
+    );
+
+
+    italicButton.addEventListener(
+      "click",
+      () => format("italic")
+    );
+
+
+    underlineButton.addEventListener(
+      "click",
+      () => format("underline")
+    );
+
+
+    /* document changes */
+
+    page.addEventListener(
+      "input",
+      function() {
+        saveState();
+      }
+    );
+
+
+    documentName.addEventListener(
+      "input",
+      function() {
+        saveState();
+      }
+    );
+
+
+    /* keyboard shortcuts */
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (
+          !(event.ctrlKey || event.metaKey)
+        ) {
+          return;
+        }
+
+        const key =
+          event.key.toLowerCase();
+
+
+        if (key === "b") {
+
+          event.preventDefault();
+
+          format("bold");
+        }
+
+
+        if (key === "i") {
+
+          event.preventDefault();
+
+          format("italic");
+        }
+
+
+        if (key === "u") {
+
+          event.preventDefault();
+
+          format("underline");
+        }
+
+
+        if (key === "s") {
+
+          event.preventDefault();
+
+          saveButton.click();
+        }
+      }
+    );
+
+
+    /* restore saved Charoite document */
+
+    loadState();
+
+  </script>
+
+</body>
+</html>

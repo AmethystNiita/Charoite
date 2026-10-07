@@ -1,420 +1,3003 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <link rel="icon" type="image/x-icon" href="./icon.ico">
-    <title>Little Amethyst</title>
-    <style>
-        body, input, button, select {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
-        }
-        @keyframes softBlink {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 0.9; }
-        }
-        .thinking-text {
-            animation: softBlink 1.5s infinite ease-in-out;
-            color: #ffffff;
-        }
-        #input:disabled {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            cursor: not-allowed;
-            -webkit-text-fill-color: #757575;
-        }
-        
-        /* Custom scrollbar for history list */
-        #historyList::-webkit-scrollbar {
-            width: 6px;
-        }
-        #historyList::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-        }
-        #historyList::-webkit-scrollbar-track {
-            background: transparent;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        /* Underlined menu tab styling */
-        .menu-tab {
-            cursor: pointer;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 22px;
-            font-weight: 600;
-            padding-bottom: 5px;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s ease-in-out;
-            text-decoration: none;
-        }
-        .menu-tab:hover {
-            color: #ffffff;
-        }
-        .menu-tab.active {
-            color: #ffffff;
-            border-bottom: 2px solid #ffffff;
-        }
-    </style>
+  <title>Charoite</title>
+
+  <style>
+    :root {
+      --bg: #17121f;
+      --bar: #241a31;
+      --bar-light: #30233f;
+      --purple: #9d7ac7;
+      --purple-light: #c8a9ed;
+      --text: #eee5f8;
+
+      --page: #211a29;
+      --page-text: #eee5f8;
+      --page-border: #3c2c4b;
+
+      --shadow: rgba(0, 0, 0, 0.35);
+
+      --ui-font:
+        "Segoe UI",
+        -apple-system,
+        BlinkMacSystemFont,
+        "San Francisco",
+        "Roboto",
+        "Noto Sans",
+        "Liberation Sans",
+        Arial,
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      user-select: none;
+      -webkit-user-select: none;
+      overflow: hidden;
+    }
+
+    .editor-content, textarea, [contenteditable="true"] {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .titlebar {
+      data-tauri-drag-region: true;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ui-font);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 48px;
+      min-height: 48px;
+
+      background: var(--bar);
+
+      border-bottom: 1px solid #3c2b4c;
+
+      display: flex;
+      align-items: center;
+
+      padding: 0 12px;
+      gap: 4px;
+
+      box-shadow: 0 3px 12px var(--shadow);
+
+      z-index: 10;
+    }
+
+    .menu {
+      position: relative;
+    }
+
+    .menu-button {
+      border: 0;
+      background: transparent;
+
+      color: var(--text);
+
+      padding: 8px 12px;
+
+      border-radius: 7px;
+
+      font-family: var(--ui-font);
+      font-size: 14px;
+
+      cursor: pointer;
+    }
+
+    .menu-button:hover,
+    .menu-button.active {
+      background: var(--bar-light);
+      color: var(--purple-light);
+    }
+
+    .dropdown {
+      position: absolute;
+
+      top: 40px;
+      left: 0;
+
+      min-width: 190px;
+
+      background: #21172c;
+
+      border: 1px solid #49345d;
+      border-radius: 9px;
+
+      padding: 6px;
+
+      box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.4);
+
+      display: none;
+
+      z-index: 50;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .submenu {
+      position: relative;
+    }
+
+    .submenu > button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .submenu-arrow {
+      margin-left: 18px;
+      opacity: 0.75;
+    }
+
+    .submenu-menu {
+      position: absolute;
+      top: -6px;
+      left: 100%;
+      min-width: 130px;
+      background: #21172c;
+      border: 1px solid #49345d;
+      border-radius: 9px;
+      padding: 6px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 60;
+    }
+
+    .submenu:hover .submenu-menu,
+    .submenu:focus-within .submenu-menu {
+      display: block;
+    }
+
+    .dropdown button,
+    .font-size-control {
+      width: 100%;
+
+      border: 0;
+      background: transparent;
+
+      color: var(--text);
+
+      padding: 9px 10px;
+
+      border-radius: 6px;
+
+      font-family: var(--ui-font);
+      font-size: 14px;
+
+      text-align: left;
+
+      cursor: pointer;
+    }
+
+    .dropdown button:hover {
+      background: var(--bar-light);
+      color: var(--purple-light);
+    }
+
+    .separator {
+      height: 1px;
+      background: #49345d;
+      margin: 5px 4px;
+    }
+
+    .font-size-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+    }
+
+    .font-size-control input {
+      width: 65px;
+
+      margin-left: auto;
+
+      background: #17121f;
+
+      border: 1px solid #4a365b;
+      border-radius: 5px;
+
+      color: var(--text);
+
+      padding: 4px 6px;
+
+      outline: none;
+
+      font-family: var(--ui-font);
+    }
+
+    .font-size-control input:focus {
+      border-color: var(--purple);
+    }
+
+    .document-name {
+      margin-left: auto;
+
+      width: 220px;
+
+      background: #1b1424;
+
+      border: 1px solid #443152;
+
+      color: var(--text);
+
+      border-radius: 7px;
+
+      padding: 7px 10px;
+
+      outline: none;
+
+      font-family: var(--ui-font);
+      font-size: 14px;
+    }
+
+    .document-name:focus {
+      border-color: var(--purple);
+
+      box-shadow:
+        0 0 0 2px rgba(157, 122, 199, 0.12);
+    }
+
+    .workspace {
+      flex: 1;
+
+      overflow: auto;
+
+      padding: 28px;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .page {
+      width: 100%;
+
+      min-height: calc(100vh - 104px);
+
+      background: var(--page);
+      color: var(--page-text);
+
+      padding: 38px 40px;
+
+      border: 1px solid var(--page-border);
+
+      border-radius: 2px;
+
+      box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.025);
+
+      outline: none;
+
+      font-family: var(--ui-font);
+      font-size: 16px;
+      line-height: 1.65;
+
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+
+      spellcheck: false;
+    }
+
+    .page:focus {
+      border-color: #59416d;
+
+      box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(157, 122, 199, 0.25);
+    }
+
+    .page:empty::before {
+      content: "";
+      color: #83768d;
+      pointer-events: none;
+    }
+
+    @media (max-width: 700px) {
+      .workspace {
+        padding: 12px;
+      }
+
+      .page {
+        padding: 30px 28px;
+      }
+
+      .document-name {
+        width: 140px;
+      }
+    }
+  </style>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23eee8f7%22/%3E%3Cpath d=%22M32 8 50 24 43 50 21 56 12 31Z%22 fill=%22%239b72c4%22/%3E%3Cpath d=%22M32 8 38 29 21 56 12 31Z%22 fill=%22%23c9a8e8%22/%3E%3Cpath d=%22M32 8 50 24 38 29Z%22 fill=%22%23e1c8f2%22/%3E%3Cpath d=%22M38 29 50 24 43 50 21 56Z%22 fill=%22%237b4fa3%22/%3E%3C/svg%3E">
 </head>
-<body style="margin: 0; overflow: hidden; background: linear-gradient(#264e8f, #3676a8);">
 
-    <div id="cube"></div>
-    
-    <div id="response" style="position: absolute; bottom: 80px; width: 100%; color: #ffffff; opacity: 0.8; transition: all 0.2s ease-in-out; text-align: center; font-size: 20px;">
-        hey... i'm here... how are you feeling-?
-    </div>
-    
-    <input id="input" placeholder="say something..." autocomplete="off" style="transition: opacity 0.3s ease; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px; border-radius: 10px; border: none; outline: none; width: 60%; text-align: center; font-size: 20px">
-    
-    <!-- Menu Toggle Button -->
-    <div id="menuBtn" style="position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 24px; color: #ffffff; transition: opacity 0.3s; z-index: 100;" title="menu">◆</div>
-    
-    <!-- Unified Menu Window -->
-    <div id="menuPopup" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out;">
-        <div style="background: #3676a8; padding: 25px 30px; border-radius: 20px; width: 500px; max-height: 80vh; display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.1); box-sizing: border-box;">
-            
-            <!-- Underlined Tab Navigation Header -->
-            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px;">
-                <span id="tabHistory" class="menu-tab active">chat history</span>
-                <span id="tabSettings" class="menu-tab">settings</span>
-            </div>
+<body>
 
-            <!-- Panel 1: Chat History -->
-            <div id="panelHistory" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
-                <div style="font-size: 16px; color: #ffffff; text-align: center; margin-bottom: 18px;">
-                    this saves only 10 message pairs
-                </div>
-                <div id="historyList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; padding-right: 5px; max-height: 45vh;">
-                </div>
-                <button id="clearHistory" style="background: #a83636; color: white; border: none; padding: 10px; border-radius: 12px; cursor: pointer; width: 100%; font-family: 'Segoe UI', sans-serif; font-size: 16px; transition: opacity 0.2s; margin-bottom: 10px;">clear history</button>
-            </div>
+  <div class="topbar">
 
-            <!-- Panel 2: Settings -->
-            <div id="panelSettings" style="display: none; flex-direction: column;">
-                <div style="margin: 0 0 15px 0; font-size: 16px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff; line-height: 1.4; text-align: center;">
-                    if you don't have a key yet, you can find one at:<br>
-                    <a href="https://aistudio.google.com/api-keys" target="_blank" style="color: #5fd7ff; text-decoration: none; font-weight: 500;">aistudio.google.com/api-keys</a>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 8px; font-size: 16px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff;">api key</label>
-                    <input id="apiKeyInput" type="password" autocomplete="off" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #eee; box-sizing: border-box; background: #fcfcfc;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; color: #ffffff;">model choice</label>
-                    <select id="modelSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; box-sizing: border-box; background: #fcfcfc;">
-                        <option value="gemma-4-26b-a4b-it">gemma-4-26b-a4b-it (fast)</option>
-                        <option value="gemma-4-31b-it">gemma-4-31b-it (smart)</option>
-                    </select>
-                </div>
-            </div>
 
-            <!-- Shared Close Button -->
-            <button id="closeMenu" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 10px; border-radius: 12px; cursor: pointer; width: 100%; font-family: 'Segoe UI', sans-serif; font-size: 16px; transition: opacity 0.2s;">close</button>
-            
-            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.5); font-family: 'Segoe UI', sans-serif; margin-top: 10px; text-align: center;">
-                <span id="appVersion">0.0.0</span>
-            </div>
+    <div class="menu">
+      <button
+        class="menu-button"
+        id="fileButton"
+      >
+        file
+      </button>
+
+      <div
+        class="dropdown"
+        id="fileMenu"
+      >
+
+        <button id="newButton">
+          new
+        </button>
+
+        <button id="loadButton">
+          load
+        </button>
+
+        <button id="saveButton">
+          save
+        </button>
+
+        <div class="separator"></div>
+
+        <button id="importButton">
+          import
+        </button>
+
+        <div class="submenu">
+          <button id="exportButton">
+            export <span class="submenu-arrow">▸</span>
+          </button>
+
+          <div class="submenu-menu" id="exportMenu">
+            <button id="exportTxtButton">
+              as .txt
+            </button>
+
+            <button id="exportJpgButton">
+              as .jpg
+            </button>
+
+            <button id="exportPngButton">
+              as .png
+            </button>
+
+            <button id="exportGifButton">
+              as .gif
+            </button>
+          </div>
         </div>
+
+        <div class="separator"></div>
+
+        <button id="copyButton">
+          copy
+        </button>
+
+        <button id="pasteButton">
+          paste
+        </button>
+
+      </div>
     </div>
-    <!-- Update Available Popup Modal -->
-    <div id="updatePopup" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out;">
-        <div style="background: #3676a8; padding: 25px 30px; border-radius: 20px; width: 400px; display: flex; flex-direction: column; font-family: 'Segoe UI', sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; color: #ffffff;">
-            <div style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">update available-!</div>
-            <div id="updateMessage" style="font-size: 15px; margin-bottom: 20px; opacity: 0.9; line-height: 1.4;">
-                a new version of little amethyst is waiting for you...
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="updateYesBtn" style="flex: 1; background: rgba(255,255,255,0.2); color: #ffffff; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 15px;">visit release page</button>
-                <button id="updateNoBtn" style="flex: 1; background: rgba(255,255,255,0.2); color: #ffffff; border: none; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 15px;">not now</button>
-            </div>
-        </div>
+
+
+
+    <div class="menu">
+      <button
+        class="menu-button"
+        id="editButton"
+      >
+        edit
+      </button>
+
+      <div
+        class="dropdown"
+        id="editMenu"
+      >
+
+        <button id="fontButton">
+          load font
+        </button>
+
+        <label class="font-size-control">
+          font size
+
+          <input
+            id="fontSizeInput"
+            type="number"
+            min="6"
+            max="200"
+            value="16"
+            spellcheck="false"
+            autocomplete="off"
+          >
+        </label>
+
+        <div class="separator"></div>
+
+        <button id="boldButton">
+          bold
+        </button>
+
+        <button id="italicButton">
+          italic
+        </button>
+
+        <button id="underlineButton">
+          underline
+        </button>
+
+      </div>
     </div>
 
-    <!-- External Dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/MTLLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
 
-    <!-- Project Assets & Logic Bundles -->
-    <script src="assets.js"></script>
-    <script src="cube.js"></script>
-    <script src="ai.js"></script>
 
-    <!-- Main UI Controller Interaction -->
-    <script>
-        const input = document.getElementById("input");
-        const response = document.getElementById("response");
-        
-        const menuBtn = document.getElementById('menuBtn');
-        const menuPopup = document.getElementById('menuPopup');
-        const closeMenuBtn = document.getElementById('closeMenu');
-        
-        const tabHistory = document.getElementById('tabHistory');
-        const tabSettings = document.getElementById('tabSettings');
-        const panelHistory = document.getElementById('panelHistory');
-        const panelSettings = document.getElementById('panelSettings');
-        
-        const clearHistoryBtn = document.getElementById('clearHistory');
-        const historyList = document.getElementById('historyList');
-    
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
+    <input
+      id="loadInput"
+      type="file"
+      accept=".charoite,application/x-charoite"
+      hidden
+    >
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'F12' || (e.metaKey && e.altKey && e.key === 'i') || (e.ctrlKey && e.key === 'r') || (e.metaKey && e.key === 'r')) {
-                e.preventDefault();
-            }
-        });
 
-        /* --- History Management --- */
-        function getHistory() {
-            const raw = localStorage.getItem('little_amethyst_chat_history');
-            if (!raw) return [];
+    <input
+      id="importInput"
+      type="file"
+      accept=".txt,text/plain"
+      hidden
+    >
 
-            const lines = raw.split('\n').filter(line => line.trim() !== '');
-            const parsedHistory = [];
+    <input
+      id="fontInput"
+      type="file"
+      accept=".ttf,.otf,.woff,.woff2"
+      hidden
+    >
 
-            lines.forEach(line => {
-                if (line.startsWith('user: ')) {
-                    parsedHistory.push({ role: 'user', text: line.replace('user: ', '') });
-                } else if (line.startsWith('assistant: ')) {
-                    parsedHistory.push({ role: 'assistant', text: line.replace('assistant: ', '') });
-                }
-            });
 
-            return parsedHistory;
+
+    <input
+      id="documentName"
+      class="document-name"
+      type="text"
+      value="untitled"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      aria-label="document name"
+    >
+
+  </div>
+
+
+
+  <main class="workspace">
+
+    <div
+      id="page"
+      class="page"
+      contenteditable="true"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      data-gramm="false"
+      data-gramm_editor="false"
+      data-enable-grammarly="false"
+    ></div>
+
+  </main>
+
+
+  <script>
+    const STORAGE_KEY =
+      "charoite-document";
+
+    const page =
+      document.getElementById("page");
+
+    const fileButton =
+      document.getElementById("fileButton");
+
+    const editButton =
+      document.getElementById("editButton");
+
+    const fileMenu =
+      document.getElementById("fileMenu");
+
+    const editMenu =
+      document.getElementById("editMenu");
+
+    const newButton =
+      document.getElementById("newButton");
+
+    const loadButton =
+      document.getElementById("loadButton");
+
+    const saveButton =
+      document.getElementById("saveButton");
+
+    const importButton =
+      document.getElementById("importButton");
+
+    const exportButton =
+      document.getElementById("exportButton");
+
+    const exportTxtButton =
+      document.getElementById("exportTxtButton");
+
+    const exportJpgButton =
+      document.getElementById("exportJpgButton");
+
+    const exportPngButton =
+      document.getElementById("exportPngButton");
+
+    const exportGifButton =
+      document.getElementById("exportGifButton");
+
+    const copyButton =
+      document.getElementById("copyButton");
+
+    const pasteButton =
+      document.getElementById("pasteButton");
+
+    const fontButton =
+      document.getElementById("fontButton");
+
+    const loadInput =
+      document.getElementById("loadInput");
+
+    const importInput =
+      document.getElementById("importInput");
+
+    const fontInput =
+      document.getElementById("fontInput");
+
+    const fontSizeInput =
+      document.getElementById("fontSizeInput");
+
+    const boldButton =
+      document.getElementById("boldButton");
+
+    const italicButton =
+      document.getElementById("italicButton");
+
+    const underlineButton =
+      document.getElementById("underlineButton");
+
+    const documentName =
+      document.getElementById("documentName");
+
+
+    let customFontName = null;
+    let customFontData = null;
+
+
+
+    function saveState() {
+
+      const state = {
+        content: page.innerHTML,
+        name: documentName.value,
+        fontSize:
+          page.style.fontSize || "16px",
+        customFontName:
+          customFontName,
+        customFontData:
+          customFontData
+      };
+
+      try {
+
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(state)
+        );
+
+      } catch {
+
+        try {
+
+          const smallerState = {
+            content: page.innerHTML,
+            name: documentName.value,
+            fontSize:
+              page.style.fontSize || "16px",
+            customFontName: null,
+            customFontData: null
+          };
+
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(smallerState)
+          );
+
+        } catch {
+        }
+      }
+    }
+
+
+    function loadState() {
+
+      const saved =
+        localStorage.getItem(
+          STORAGE_KEY
+        );
+
+      if (!saved) {
+        return;
+      }
+
+      try {
+
+        const state =
+          JSON.parse(saved);
+
+        page.innerHTML =
+          state.content || "";
+
+        documentName.value =
+          state.name || "untitled";
+
+        page.style.fontSize =
+          state.fontSize || "16px";
+
+        fontSizeInput.value =
+          parseInt(
+            state.fontSize || "16",
+            10
+          );
+
+
+        updateTextDirection();
+
+        if (
+          state.customFontName &&
+          state.customFontData
+        ) {
+
+          installCustomFont(
+            state.customFontName,
+            state.customFontData
+          );
         }
 
-        function saveMessagePair(userText, assistantText) {
-            let history = getHistory();
-            history.push({ role: 'user', text: userText });
-            history.push({ role: 'assistant', text: assistantText });
+      } catch {
+      }
+    }
 
-            if (history.length > 20) {
-                history = history.slice(history.length - 20);
-            }
 
-            const textFormat = history.map(msg => `${msg.role}: ${msg.text}`).join('\n');
-            localStorage.setItem('little_amethyst_chat_history', textFormat);
+
+    function closeMenus() {
+
+      fileMenu.classList.remove("show");
+      editMenu.classList.remove("show");
+
+      fileButton.classList.remove("active");
+      editButton.classList.remove("active");
+    }
+
+
+    fileButton.addEventListener(
+      "click",
+      function(event) {
+
+        event.stopPropagation();
+
+        const wasOpen =
+          fileMenu.classList.contains(
+            "show"
+          );
+
+        closeMenus();
+
+        if (!wasOpen) {
+
+          fileMenu.classList.add("show");
+          fileButton.classList.add("active");
+
+        }
+      }
+    );
+
+    editButton.addEventListener(
+      "click",
+      function(event) {
+
+        event.stopPropagation();
+
+        const wasOpen =
+          editMenu.classList.contains(
+            "show"
+          );
+
+        closeMenus();
+
+        if (!wasOpen) {
+
+          editMenu.classList.add("show");
+          editButton.classList.add("active");
+
+        }
+      }
+    );
+
+
+    document.addEventListener(
+      "click",
+      closeMenus
+    );
+
+
+    fileMenu.addEventListener(
+      "click",
+      event => event.stopPropagation()
+    );
+
+
+    editMenu.addEventListener(
+      "click",
+      event => event.stopPropagation()
+    );
+
+
+
+    newButton.addEventListener(
+      "click",
+      function() {
+
+        page.innerHTML = "";
+
+        documentName.value =
+          "untitled";
+
+        page.style.fontSize =
+          "16px";
+
+        page.innerHTML = "";
+        page.dir = "ltr";
+
+        fontSizeInput.value =
+          "16";
+
+
+        customFontName = null;
+        customFontData = null;
+
+
+        const oldStyle =
+          document.getElementById(
+            "custom-font-style"
+          );
+
+        if (oldStyle) {
+          oldStyle.remove();
         }
 
-        function renderHistory() {
-            historyList.innerHTML = '';
-            const history = getHistory();
 
-            if (history.length === 0) {
-                historyList.innerHTML = `<div style="color: #ffffff; text-align: center; font-size: 16px; margin-top: 0px;">no messages saved yet</div>`;
-                return;
-            }
+        page.style.fontFamily = "";
 
-            history.forEach(msg => {
-                const bubble = document.createElement('div');
-                const isUser = msg.role === 'user';
-                
-                bubble.style.cssText = isUser 
-                    ? 'background: rgba(255, 255, 255, 0.2); color: #ffffff; align-self: flex-end; padding: 10px 14px; border-radius: 15px 15px 2px 15px; max-width: 80%; word-wrap: break-word; font-size: 16px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.1);'
-                    : 'background: rgba(255, 255, 255, 0.2); color: #ffffff; align-self: flex-start; padding: 10px 14px; border-radius: 15px 15px 15px 2px; max-width: 80%; word-wrap: break-word; font-size: 16px; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.1);';
-                
-                bubble.innerText = msg.text;
-                historyList.appendChild(bubble);
-            });
 
-            historyList.scrollTop = historyList.scrollHeight;
+        localStorage.removeItem(
+          STORAGE_KEY
+        );
+
+
+        page.focus();
+
+        closeMenus();
+      }
+    );
+
+
+
+
+    function getNodeFormatting(node) {
+      const formatting = {
+        bold: false,
+        italic: false,
+        underline: false
+      };
+
+      let current = node.parentElement;
+
+      while (current && current !== page) {
+        const tag = current.tagName.toLowerCase();
+
+        if (tag === "b" || tag === "strong") {
+          formatting.bold = true;
         }
 
-        /* --- Tab Switching Logic --- */
-        function switchTab(tab) {
-            if (tab === 'history') {
-                tabHistory.classList.add('active');
-                tabSettings.classList.remove('active');
-                panelHistory.style.display = 'flex';
-                panelSettings.style.display = 'none';
-                renderHistory();
-            } else if (tab === 'settings') {
-                tabSettings.classList.add('active');
-                tabHistory.classList.remove('active');
-                panelSettings.style.display = 'flex';
-                panelHistory.style.display = 'none';
-            }
+        if (tag === "i" || tag === "em") {
+          formatting.italic = true;
         }
 
-        tabHistory.onclick = () => switchTab('history');
-        tabSettings.onclick = () => switchTab('settings');
+        if (tag === "u") {
+          formatting.underline = true;
+        }
 
-        /* --- Menu Toggle & Close --- */
-        menuBtn.onclick = () => {
-            renderHistory();
-            menuPopup.style.opacity = '1';
-            menuPopup.style.pointerEvents = 'auto';
-            input.disabled = true;
-            document.getElementById('apiKeyInput').disabled = false;
-            document.getElementById('modelSelect').disabled = false;
-        };
+        current = current.parentElement;
+      }
 
-        closeMenuBtn.onclick = () => {
-            // Automatically save settings state upon closing
-            localStorage.setItem('little_amethyst_api_key', document.getElementById('apiKeyInput').value);
-            localStorage.setItem('little_amethyst_model', document.getElementById('modelSelect').value);
-            
-            menuPopup.style.opacity = '0';
-            menuPopup.style.pointerEvents = 'none';
-            document.getElementById('apiKeyInput').disabled = true;
-            document.getElementById('modelSelect').disabled = true;
-            input.disabled = false;
-            input.focus();
-        };
+      return formatting;
+    }
 
-        clearHistoryBtn.onclick = () => {
-            localStorage.removeItem('little_amethyst_chat_history');
-            renderHistory();
-        };
+    function escapeCharoiteText(text) {
+      return text
+        .replace(/\\/g, "\\\\")
+        .replace(/\*/g, "\\*")
+        .replace(/_/g, "\\_");
+    }
 
-        window.onload = () => {
-            document.getElementById('appVersion').innerText = CURRENT_VERSION;
-            if(localStorage.getItem('little_amethyst_api_key')) {
-                document.getElementById('apiKeyInput').value = localStorage.getItem('little_amethyst_api_key');
+    function formattingPrefix(formatting) {
+      if (
+        formatting.bold &&
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "__***";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.underline
+      ) {
+        return "__**";
+      }
+
+      if (
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "__*";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.italic
+      ) {
+        return "***";
+      }
+
+      if (formatting.bold) {
+        return "**";
+      }
+
+      if (formatting.italic) {
+        return "*";
+      }
+
+      if (formatting.underline) {
+        return "__";
+      }
+
+      return "";
+    }
+
+    function formattingSuffix(formatting) {
+      if (
+        formatting.bold &&
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "***__";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.underline
+      ) {
+        return "**__";
+      }
+
+      if (
+        formatting.italic &&
+        formatting.underline
+      ) {
+        return "*__";
+      }
+
+      if (
+        formatting.bold &&
+        formatting.italic
+      ) {
+        return "***";
+      }
+
+      if (formatting.bold) {
+        return "**";
+      }
+
+      if (formatting.italic) {
+        return "*";
+      }
+
+      if (formatting.underline) {
+        return "__";
+      }
+
+      return "";
+    }
+
+    function getEmbeddedFontInfo() {
+      if (!customFontData) {
+        return null;
+      }
+
+      const match = customFontData.match(
+        /^data:([^;,]+);base64,([A-Za-z0-9+/=]+)$/
+      );
+
+      if (!match) {
+        return null;
+      }
+
+      return {
+        mime: match[1],
+        base64: match[2]
+      };
+    }
+
+    function charoiteFromDom() {
+      const blockTags = new Set([
+        "div", "p", "li", "blockquote", "pre",
+        "h1", "h2", "h3", "h4", "h5", "h6"
+      ]);
+
+      function imageToken(node) {
+        const src = node.getAttribute("src") || "";
+        const width = Math.round(
+          node.getBoundingClientRect().width || node.width || 0
+        );
+        const height = Math.round(
+          node.getBoundingClientRect().height || node.height || 0
+        );
+
+        const match = src.match(
+          /^data:(image\/[A-Za-z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/i
+        );
+
+        if (!match) {
+          return "";
+        }
+
+        return (
+          '[image="' +
+          match[1].split("/")[1].toLowerCase() +
+          '", width="' +
+          Math.max(1, width) +
+          '", height="' +
+          Math.max(1, height) +
+          '", base64="' +
+          match[2] +
+          '"]'
+        );
+      }
+
+      function serializeInline(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = escapeCharoiteText(node.nodeValue);
+
+          if (!text) {
+            return "";
+          }
+
+          const formatting = getNodeFormatting(node);
+
+          return (
+            formattingPrefix(formatting) +
+            text +
+            formattingSuffix(formatting)
+          );
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+          return "";
+        }
+
+        const tag = node.tagName.toLowerCase();
+
+        if (tag === "br") {
+          return "\n";
+        }
+
+        if (tag === "img") {
+          return imageToken(node);
+        }
+
+        if (blockTags.has(tag)) {
+          return serializeBlock(node);
+        }
+
+        let output = "";
+
+        for (const child of node.childNodes) {
+          output += serializeInline(child);
+        }
+
+        return output;
+      }
+
+      function serializeBlock(node) {
+        let output = "";
+
+        for (const child of node.childNodes) {
+          if (
+            child.nodeType === Node.ELEMENT_NODE &&
+            blockTags.has(child.tagName.toLowerCase())
+          ) {
+            const childText = serializeBlock(child);
+
+            if (output && !output.endsWith("\n")) {
+              output += "\n";
             }
-            if(localStorage.getItem('little_amethyst_model')) {
-                document.getElementById('modelSelect').value = localStorage.getItem('little_amethyst_model');
-            }
-            document.getElementById('apiKeyInput').disabled = true;
-            document.getElementById('modelSelect').disabled = true;
-            input.focus();
-        };
 
-        input.addEventListener("keydown", async (e) => {
-            if (e.key === "Enter") {
-                const text = input.value.trim();
-                const responseDiv = document.getElementById("response");
+            output += childText;
+          } else {
+            output += serializeInline(child);
+          }
+        }
 
-                if (!text) return; 
+        return output;
+      }
 
-                input.style.opacity = 0;
-                input.disabled = true;
-                if (window.startThinking) window.startThinking();
-                responseDiv.innerText = "thinking...";
-                responseDiv.classList.add("thinking-text");
-                
-                let isFirstChunk = true;
-                let fullAssistantReply = "";
+      let output = "";
+      let pendingInline = "";
 
-                try {
-                    await getResponse(text, (chunk) => {
-                        if (isFirstChunk) {
-                            responseDiv.innerText = "";
-                            responseDiv.classList.remove("thinking-text");
-                            isFirstChunk = false;
-                        }
-                        responseDiv.innerText += chunk;
-                        fullAssistantReply += chunk;
-                    });
+      function flushInline() {
+        if (pendingInline) {
+          output += pendingInline;
+          pendingInline = "";
+        }
+      }
 
-                    if (fullAssistantReply) {
-                        saveMessagePair(text, fullAssistantReply);
+      for (const child of page.childNodes) {
+        if (
+          child.nodeType === Node.ELEMENT_NODE &&
+          blockTags.has(child.tagName.toLowerCase())
+        ) {
+          flushInline();
+
+          const blockText = serializeBlock(child);
+
+          if (output && !output.endsWith("\n")) {
+            output += "\n";
+          }
+
+          output += blockText;
+        } else {
+          pendingInline += serializeInline(child);
+        }
+      }
+
+      flushInline();
+
+      return output;
+    }
+
+function escapeHeaderValue(value) {
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"');
+}
+
+function parseCharoiteHeader(line) {
+  const match =
+    line.match(/^\s*\[(.*)\]\s*$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const attributes = {};
+
+  const attributePattern =
+    /([A-Za-z0-9_-]+)\s*=\s*"((?:\\.|[^"])*)"/g;
+
+  let attributeMatch;
+
+  while (
+    (attributeMatch =
+      attributePattern.exec(match[1])) !== null
+  ) {
+    const key =
+      attributeMatch[1];
+
+    const value =
+      attributeMatch[2].replace(
+        /\\(["\\])/g,
+        "$1"
+      );
+
+    attributes[key] = value;
+  }
+
+  return attributes;
+}
+
+
+function makeCharoiteFile() {
+  const font =
+    getEmbeddedFontInfo();
+
+  const content =
+    charoiteFromDom();
+
+  const fontSize =
+    parseInt(page.style.fontSize || "16", 10) || 16;
+
+  let header =
+    '[file="charoite", font-size="' +
+    fontSize +
+    '"';
+
+  if (font) {
+    header +=
+      ', font-mime="' +
+      escapeHeaderValue(font.mime) +
+      '"';
+
+    header +=
+      ', font-base64="' +
+      escapeHeaderValue(font.base64) +
+      '"';
+  }
+
+  header += "]";
+
+  return (
+    header +
+    "\n\n" +
+    content
+  );
+}
+
+    function plainTextFromDom() {
+      return page.innerText.replace(/\u00a0/g, " ");
+    }
+
+    function getStrongTextDirection(text) {
+      let rtl = 0;
+      let ltr = 0;
+
+      for (const char of text) {
+        const code = char.codePointAt(0);
+
+        if (
+          (code >= 0x0590 && code <= 0x08ff) ||
+          (code >= 0xfb1d && code <= 0xfdff) ||
+          (code >= 0xfe70 && code <= 0xfefc)
+        ) {
+          rtl++;
+          continue;
+        }
+
+        if (
+          (code >= 0x0041 && code <= 0x005a) ||
+          (code >= 0x0061 && code <= 0x007a) ||
+          (code >= 0x00c0 && code <= 0x02af) ||
+          (code >= 0x0370 && code <= 0x058f) ||
+          (code >= 0x0900 && code <= 0xd7ff) ||
+          (code >= 0xf900 && code <= 0xfaff) ||
+          (code >= 0xff21 && code <= 0xff3a) ||
+          (code >= 0xff41 && code <= 0xff5a)
+        ) {
+          ltr++;
+        }
+      }
+
+      if (!rtl && !ltr) {
+        return "ltr";
+      }
+
+      if (rtl > ltr) {
+        return "rtl";
+      }
+
+      if (ltr > rtl) {
+        return "ltr";
+      }
+
+      return null;
+    }
+
+    function updateTextDirection() {
+        const direction =
+          getStrongTextDirection(page.innerText);
+
+        page.dir = direction || "ltr";
+      }
+
+    async function saveTextFile(text, filename) {
+      const blob = new Blob(
+        [text],
+        { type: "text/plain;charset=utf-8" }
+      );
+
+      if (window.showSaveFilePicker) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [
+              {
+                description: filename.toLowerCase().endsWith(".charoite")
+                  ? "Charoite file"
+                  : "Text file",
+                accept: filename.toLowerCase().endsWith(".charoite")
+                  ? {
+                      "application/x-charoite": [".charoite"]
                     }
-
-                } catch (error) {
-                    responseDiv.classList.remove("thinking-text");
-                    let errorText = "mnh... my head feels a bit fuzzy... can you say that again-?";
-                    if (error === "no-key") {
-                        errorText = "mnh... i don't have my key yet... could you check the settings for me-?";
+                  : {
+                      "text/plain": [".txt"]
                     }
-                    responseDiv.innerText = errorText;
-                    saveMessagePair(text, errorText);
-                }
+              }
+            ]
+          });
 
-                input.value = "";
-                input.style.opacity = 1;
-                input.disabled = false;
-                if (window.stopThinking) window.stopThinking();
-                input.focus();
-            }
-        });
-        const CURRENT_VERSION = "1.0.5";
-        let latestReleaseUrl = "https://github.com/AmethystNiita/LittleAmethyst/releases";
-
-        // Compare semantic versions (1.0.6 vs 1.0.7)
-        function isNewerVersion(current, latest) {
-            const cArr = current.split('.').map(Number);
-            const lArr = latest.split('.').map(Number);
-            for (let i = 0; i < 3; i++) {
-                if (lArr[i] > cArr[i]) return true;
-                if (lArr[i] < cArr[i]) return false;
-            }
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return true;
+        } catch (error) {
+          if (error && error.name === "AbortError") {
             return false;
+          }
+          console.error("Could not use the save dialog:", error);
+        }
+      }
+
+      try {
+        const file = new File([blob], filename, {
+          type: "text/plain"
+        });
+
+        if (navigator.share &&
+            navigator.canShare &&
+            navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: filename
+          });
+          return true;
+        }
+      } catch (error) {
+        if (error && error.name === "AbortError") {
+          return false;
+        }
+        console.error("Could not use the mobile share sheet:", error);
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = filename;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+      return true;
+    }
+
+    function isEscaped(text, index) {
+      let slashCount = 0;
+
+      for (let i = index - 1; i >= 0 && text[i] === "\\"; i--) {
+        slashCount++;
+      }
+
+      return slashCount % 2 === 1;
+    }
+
+    function findClosingToken(text, token, start) {
+      let index = start;
+
+      while (index < text.length) {
+        const found = text.indexOf(token, index);
+
+        if (found === -1) {
+          return -1;
         }
 
-        // Fetch the latest release from GitHub API
-        async function checkForUpdates() {
-            try {
-                const res = await fetch('https://api.github.com/repos/AmethystNiita/LittleAmethyst/releases/latest');
-                if (!res.ok) return;
-                
-                const release = await res.json();
-                const latestVersion = release.tag_name.replace('v', '');
-                
-                if (isNewerVersion(CURRENT_VERSION, latestVersion)) {
-                    latestReleaseUrl = release.html_url;
-                    showUpdatePopup(release.tag_name);
-                }
-            } catch (error) {
-                console.log("Could not check for updates:", error);
+        if (!isEscaped(text, found)) {
+          return found;
+        }
+
+        index = found + token.length;
+      }
+
+      return -1;
+    }
+
+    function appendParsedText(parent, text) {
+      let buffer = "";
+
+      function flush() {
+        if (buffer) {
+          parent.appendChild(
+            document.createTextNode(buffer)
+          );
+          buffer = "";
+        }
+      }
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (char === "\\") {
+          const next = text[i + 1];
+
+          if (
+            next === "\\" ||
+            next === "*" ||
+            next === "_"
+          ) {
+            buffer += next;
+            i++;
+            continue;
+          }
+        }
+
+        if (char === "\n") {
+          flush();
+          parent.appendChild(
+            document.createElement("br")
+          );
+          continue;
+        }
+
+        buffer += char;
+      }
+
+      flush();
+    }
+
+    function appendParsedImage(parent, type, width, height, base64) {
+      const image = document.createElement("img");
+
+      const safeType = String(type || "png").toLowerCase();
+      const mime =
+        safeType === "jpg" || safeType === "jpeg"
+          ? "image/jpeg"
+          : safeType === "gif"
+            ? "image/gif"
+            : safeType === "webp"
+              ? "image/webp"
+              : "image/png";
+
+      if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64 || "")) {
+        return;
+      }
+
+      const numericWidth = Number(width);
+      const numericHeight = Number(height);
+
+      if (!Number.isFinite(numericWidth) || !Number.isFinite(numericHeight)) {
+        return;
+      }
+
+      image.src = "data:" + mime + ";base64," + base64;
+      image.width = Math.max(1, Math.round(numericWidth));
+      image.height = Math.max(1, Math.round(numericHeight));
+      image.style.maxWidth = "100%";
+      image.style.height = "auto";
+      image.draggable = true;
+
+      parent.appendChild(image);
+    }
+
+    function findImageTokenEnd(source, start) {
+      const end = source.indexOf("]", start);
+      return end === -1 ? -1 : end;
+    }
+
+    function parseImageToken(token) {
+      const match = token.match(/^\[image="([A-Za-z0-9.+-]+)",\s*width="([0-9]+)",\s*height="([0-9]+)",\s*base64="([A-Za-z0-9+/=]+)"\]$/i);
+
+      if (!match) {
+        return null;
+      }
+
+      return {
+        type: match[1],
+        width: match[2],
+        height: match[3],
+        base64: match[4]
+      };
+    }
+
+    function parseCharoite(text) {
+      const fragment = document.createDocumentFragment();
+
+      const patterns = [
+        {
+          open: "__***",
+          close: "***__",
+          tags: ["u", "strong", "em"]
+        },
+        {
+          open: "__**",
+          close: "**__",
+          tags: ["u", "strong"]
+        },
+        {
+          open: "__*",
+          close: "*__",
+          tags: ["u", "em"]
+        },
+        {
+          open: "***",
+          close: "***",
+          tags: ["strong", "em"]
+        },
+        {
+          open: "**",
+          close: "**",
+          tags: ["strong"]
+        },
+        {
+          open: "__",
+          close: "__",
+          tags: ["u"]
+        },
+        {
+          open: "*",
+          close: "*",
+          tags: ["em"]
+        }
+      ];
+
+      function parseRange(parent, source, start, end) {
+        let plainStart = start;
+
+        function flushPlain(until) {
+          if (until <= plainStart) {
+            return;
+          }
+
+          appendParsedText(
+            parent,
+            source.slice(plainStart, until)
+          );
+        }
+
+        let i = start;
+
+        while (i < end) {
+          if (source.startsWith("[image=", i)) {
+            const tokenEnd = findImageTokenEnd(source, i + 7);
+
+            if (tokenEnd !== -1 && tokenEnd < end) {
+              const imageInfo = parseImageToken(
+                source.slice(i, tokenEnd + 1)
+              );
+
+              if (imageInfo) {
+                flushPlain(i);
+                appendParsedImage(
+                  parent,
+                  imageInfo.type,
+                  imageInfo.width,
+                  imageInfo.height,
+                  imageInfo.base64
+                );
+                i = tokenEnd + 1;
+                plainStart = i;
+                continue;
+              }
             }
-        }
+          }
 
-        // Function to toggle background focusability
-        function setBackgroundFocusable(isFocusable) {
-            // Select interactive elements outside the update popup
-            const elements = document.querySelectorAll('input, button, textarea, a, [tabindex]');
-            elements.forEach(el => {
-                if (!document.getElementById('updatePopup').contains(el)) {
-                    if (isFocusable) {
-                        el.removeAttribute('tabindex');
-                    } else {
-                        el.setAttribute('tabindex', '-1');
-                    }
-                }
-            });
-        }
+          if (source[i] === "\\") {
+            i += 2;
+            continue;
+          }
 
-        function showUpdatePopup(tagName) {
-            const updatePopup = document.getElementById('updatePopup');
-            const updateMessage = document.getElementById('updateMessage');
-            
-            // Clear focus from whatever was selected before (text inputs, buttons, etc.)
-            if (document.activeElement) {
-                document.activeElement.blur();
+          let matched = null;
+
+          for (const pattern of patterns) {
+            if (
+              source.startsWith(pattern.open, i) &&
+              i + pattern.open.length <= end
+            ) {
+              const closeIndex =
+                findClosingToken(
+                  source,
+                  pattern.close,
+                  i + pattern.open.length
+                );
+
+              if (
+                closeIndex !== -1 &&
+                closeIndex < end
+              ) {
+                matched = {
+                  pattern,
+                  closeIndex
+                };
+                break;
+              }
             }
+          }
 
-            updateMessage.innerText = `a new version (${tagName}) of little amethyst is waiting for you... would you like to visit the release page to install it now-?`;
-            
-            updatePopup.style.opacity = '1';
-            updatePopup.style.pointerEvents = 'auto';
+          if (!matched) {
+            i++;
+            continue;
+          }
 
-            // Disable tabbing into background elements
-            setBackgroundFocusable(false);
+          flushPlain(i);
+
+          const elementStack = [];
+          let container = parent;
+
+          for (const tag of matched.pattern.tags) {
+            const element =
+              document.createElement(tag);
+
+            container.appendChild(element);
+            elementStack.push(element);
+            container = element;
+          }
+
+          parseRange(
+            container,
+            source,
+            i + matched.pattern.open.length,
+            matched.closeIndex
+          );
+
+          i =
+            matched.closeIndex +
+            matched.pattern.close.length;
+
+          plainStart = i;
         }
 
-        function hideUpdatePopup() {
-            const updatePopup = document.getElementById('updatePopup');
-            updatePopup.style.opacity = '0';
-            updatePopup.style.pointerEvents = 'none';
+        flushPlain(end);
+      }
 
-            // Restore tabbing for background elements
-            setBackgroundFocusable(true);
+      parseRange(
+        fragment,
+        text,
+        0,
+        text.length
+      );
+
+      return fragment;
+    }
+
+function setLoadedDocumentName(filename) {
+  const name =
+    filename.replace(
+      /\.(txt|charoite)$/i,
+      ""
+    );
+
+  documentName.value =
+    name || "untitled";
+}
+
+
+function loadCharoite(text) {
+
+  text = text.replace(/\r\n?/g, "\n");
+
+  const firstNewline =
+    text.indexOf("\n");
+
+  if (firstNewline === -1) {
+    page.textContent = text;
+    return;
+  }
+
+  const headerLine =
+    text
+      .slice(0, firstNewline)
+      .replace(/\r$/, "");
+
+  const attributes =
+    parseCharoiteHeader(headerLine);
+
+
+  if (
+    !attributes ||
+    attributes.file !== "charoite"
+  ) {
+    page.textContent = text;
+    return;
+  }
+
+
+  let contentStart =
+    firstNewline + 1;
+
+  if (
+    text.startsWith(
+      "\n",
+      contentStart
+    )
+  ) {
+    contentStart += 1;
+  }
+
+  const content =
+    text.slice(contentStart);
+
+
+  const savedFontSize =
+    parseInt(attributes["font-size"], 10);
+
+  if (
+    Number.isFinite(savedFontSize)
+  ) {
+    const clampedFontSize =
+      Math.max(6, Math.min(200, savedFontSize));
+
+    page.style.fontSize =
+      clampedFontSize + "px";
+
+    fontSizeInput.value =
+      clampedFontSize;
+  }
+
+
+
+  const fontMime =
+    attributes["font-mime"];
+
+  const fontBase64 =
+    attributes["font-base64"];
+
+  const validBase64 =
+    typeof fontBase64 === "string" &&
+    fontBase64.length > 0 &&
+    /^[A-Za-z0-9+/]*={0,2}$/.test(
+      fontBase64
+    );
+
+  const validMime =
+    typeof fontMime === "string" &&
+    (
+      /^font\/[A-Za-z0-9.+-]+$/i.test(
+        fontMime
+      ) ||
+      fontMime ===
+        "application/octet-stream"
+    );
+
+  if (
+    validBase64 &&
+    validMime
+  ) {
+    const dataUrl =
+      "data:" +
+      fontMime +
+      ";base64," +
+      fontBase64;
+
+    installCustomFont(
+      "luni-custom-font",
+      dataUrl
+    );
+  } else {
+    customFontName = null;
+    customFontData = null;
+
+    const oldStyle =
+      document.getElementById(
+        "custom-font-style"
+      );
+
+    if (oldStyle) {
+      oldStyle.remove();
+    }
+
+    page.style.fontFamily = "";
+  }
+
+
+  page.innerHTML = "";
+
+  page.appendChild(
+    parseCharoite(content)
+  );
+
+  updateTextDirection();
+}
+
+
+    loadButton.addEventListener(
+      "click",
+      function() {
+        loadInput.click();
+        closeMenus();
+      }
+    );
+
+    loadInput.addEventListener(
+      "change",
+      function(event) {
+        const file =
+          event.target.files[0];
+
+        if (!file) {
+          return;
         }
 
-        // Button interactions
-        document.getElementById('updateYesBtn').onclick = () => {
-            window.open(latestReleaseUrl, '_blank');
-            hideUpdatePopup();
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+          const text =
+            e.target.result;
+
+          loadCharoite(text);
+
+          setLoadedDocumentName(file.name);
+
+          saveState();
+          page.focus();
         };
 
-        document.getElementById('updateNoBtn').onclick = () => {
-            hideUpdatePopup();
+        reader.readAsText(file);
+        loadInput.value = "";
+      }
+    );
+
+
+    saveButton.addEventListener(
+      "click",
+      function() {
+        const text =
+          makeCharoiteFile();
+
+        const name =
+          documentName.value.trim()
+          || "untitled";
+
+        const filename =
+          name.replace(
+            /\.(txt|charoite)$/i,
+            ""
+          ) + ".charoite";
+
+        saveTextFile(
+          text,
+          filename
+        ).then(function(saved) {
+          if (saved) {
+            saveState();
+            closeMenus();
+          }
+        });
+        closeMenus();
+      }
+    );
+
+
+    importButton.addEventListener(
+      "click",
+      function() {
+        importInput.click();
+        closeMenus();
+      }
+    );
+
+
+    importInput.addEventListener(
+      "change",
+      function(event) {
+        const file = event.target.files[0];
+
+        if (!file) {
+          return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+          page.textContent = e.target.result;
+          updateTextDirection();
+          setLoadedDocumentName(file.name);
+          saveState();
+          page.focus();
         };
 
-        // Trigger check shortly after startup
-        setTimeout(checkForUpdates, 0);
-    </script>
+        reader.readAsText(file);
+        importInput.value = "";
+      }
+    );
+
+
+    exportTxtButton.addEventListener(
+      "click",
+      function() {
+        const text = plainTextFromDom();
+        const name = documentName.value.trim() || "untitled";
+        const filename =
+          name.replace(/\.(txt|charoite)$/i, "") + ".txt";
+
+        saveTextFile(text, filename).then(function(saved) {
+          if (saved) {
+            saveState();
+          }
+        });
+
+        closeMenus();
+      }
+    );
+
+
+    async function renderDocumentToCanvas() {
+      const pageStyle = getComputedStyle(page);
+      const width = Math.max(1, Math.ceil(page.clientWidth));
+      const paddingLeft = parseFloat(pageStyle.paddingLeft) || 0;
+      const paddingRight = parseFloat(pageStyle.paddingRight) || 0;
+      const paddingTop = parseFloat(pageStyle.paddingTop) || 0;
+      const paddingBottom = parseFloat(pageStyle.paddingBottom) || 0;
+      const contentWidth = Math.max(
+        1,
+        width - paddingLeft - paddingRight
+      );
+      const defaultFontSize = parseFloat(pageStyle.fontSize) || 16;
+      const defaultLineHeight =
+        parseFloat(pageStyle.lineHeight) ||
+        defaultFontSize * 1.65;
+      const estimatedHeight = Math.max(
+        page.scrollHeight,
+        paddingTop + paddingBottom + defaultLineHeight
+      );
+      const scale = Math.min(window.devicePixelRatio || 1, 2);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(width * scale);
+      canvas.height = Math.ceil(estimatedHeight * scale);
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        throw new Error("Could not create a canvas.");
+      }
+
+      context.scale(scale, scale);
+      context.fillStyle = pageStyle.backgroundColor || "white";
+      context.fillRect(0, 0, width, estimatedHeight);
+      context.textBaseline = "alphabetic";
+
+      let x = paddingLeft;
+      let y = paddingTop;
+      let lineHeight = defaultLineHeight;
+      let lineDirection = page.dir === "rtl" ? "rtl" : "ltr";
+      let maxY = y;
+
+      function resetLine(direction) {
+        lineDirection = direction || "ltr";
+        lineHeight = defaultLineHeight;
+        x = lineDirection === "rtl"
+          ? width - paddingRight
+          : paddingLeft;
+      }
+
+      function newLine(direction) {
+        y += lineHeight;
+        resetLine(direction || lineDirection);
+        maxY = Math.max(maxY, y);
+      }
+
+      function applyTextStyle(style) {
+        const fontStyle = style.fontStyle || "normal";
+        const fontWeight = style.fontWeight || "400";
+        const fontSize = parseFloat(style.fontSize) || defaultFontSize;
+        const fontFamily = style.fontFamily || pageStyle.fontFamily;
+
+        context.font =
+          fontStyle + " " +
+          fontWeight + " " +
+          fontSize + "px " +
+          fontFamily;
+
+        context.fillStyle =
+          style.color || pageStyle.color || "black";
+
+        lineHeight =
+          parseFloat(style.lineHeight) ||
+          fontSize * 1.65;
+      }
+
+      function drawChunk(text, style, direction) {
+        if (!text) return;
+
+        applyTextStyle(style);
+
+        const dir = direction === "rtl" ? "rtl" : "ltr";
+        context.direction = dir;
+        context.textAlign = dir === "rtl" ? "right" : "left";
+
+        const parts = text.split(/(\s+)/);
+
+        for (const part of parts) {
+          if (!part) continue;
+
+          const measured = context.measureText(part).width;
+
+          if (dir === "ltr") {
+            if (
+              x + measured > width - paddingRight &&
+              x > paddingLeft
+            ) {
+              newLine(dir);
+            }
+
+            context.fillText(
+              part,
+              x,
+              y + lineHeight -
+                (lineHeight -
+                  (parseFloat(style.fontSize) || defaultFontSize)) / 2
+            );
+
+            if (
+              style.textDecorationLine &&
+              style.textDecorationLine.includes("underline")
+            ) {
+              const underlineY = y + lineHeight + 1;
+
+              context.fillRect(
+                x,
+                underlineY,
+                measured,
+                Math.max(
+                  1,
+                  (parseFloat(style.fontSize) || defaultFontSize) / 14
+                )
+              );
+            }
+
+            x += measured;
+          } else {
+            if (
+              x - measured < paddingLeft &&
+              x < width - paddingRight
+            ) {
+              newLine(dir);
+            }
+
+            context.fillText(
+              part,
+              x,
+              y + lineHeight -
+                (lineHeight -
+                  (parseFloat(style.fontSize) || defaultFontSize)) / 2
+            );
+
+            if (
+              style.textDecorationLine &&
+              style.textDecorationLine.includes("underline")
+            ) {
+              const underlineY = y + lineHeight + 1;
+
+              context.fillRect(
+                x - measured,
+                underlineY,
+                measured,
+                Math.max(
+                  1,
+                  (parseFloat(style.fontSize) || defaultFontSize) / 14
+                )
+              );
+            }
+
+            x -= measured;
+          }
+        }
+
+        maxY = Math.max(maxY, y + lineHeight);
+      }
+
+      async function drawImage(node) {
+        const src = node.getAttribute("src") || "";
+
+        if (!/^data:image\//i.test(src)) {
+          newLine(lineDirection);
+          return;
+        }
+
+        const image = new Image();
+        image.src = src;
+
+        await new Promise(function(resolve, reject) {
+          image.onload = resolve;
+          image.onerror = reject;
+        });
+
+        let imageWidth = Math.round(
+          node.getBoundingClientRect().width ||
+          node.width ||
+          image.naturalWidth ||
+          1
+        );
+
+        let imageHeight = Math.round(
+          node.getBoundingClientRect().height ||
+          node.height ||
+          image.naturalHeight ||
+          1
+        );
+
+        if (imageWidth > contentWidth) {
+          const ratio = contentWidth / imageWidth;
+          imageWidth = Math.max(1, Math.round(imageWidth * ratio));
+          imageHeight = Math.max(1, Math.round(imageHeight * ratio));
+        }
+
+        if (lineDirection === "rtl") {
+          if (
+            x - imageWidth < paddingLeft &&
+            x < width - paddingRight
+          ) {
+            newLine("rtl");
+          }
+
+          context.drawImage(
+            image,
+            x - imageWidth,
+            y,
+            imageWidth,
+            imageHeight
+          );
+
+          x -= imageWidth;
+        } else {
+          if (
+            x + imageWidth > width - paddingRight &&
+            x > paddingLeft
+          ) {
+            newLine("ltr");
+          }
+
+          context.drawImage(
+            image,
+            x,
+            y,
+            imageWidth,
+            imageHeight
+          );
+
+          x += imageWidth;
+        }
+
+        lineHeight = Math.max(lineHeight, imageHeight);
+        maxY = Math.max(maxY, y + imageHeight);
+      }
+
+      async function walk(node, inheritedDirection) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const parentStyle =
+            getComputedStyle(node.parentElement || page);
+
+          const direction =
+            node.parentElement && node.parentElement.dir
+              ? node.parentElement.dir
+              : inheritedDirection;
+
+          drawChunk(node.nodeValue, parentStyle, direction);
+          return;
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const element = node;
+        const tag = element.tagName.toLowerCase();
+
+        const direction =
+          element.dir === "rtl" || element.dir === "ltr"
+            ? element.dir
+            : inheritedDirection;
+
+        if (tag === "br") {
+          newLine(direction);
+          return;
+        }
+
+        if (tag === "img") {
+          await drawImage(element);
+          return;
+        }
+
+        const isBlock = [
+          "div", "p", "li", "blockquote", "pre",
+          "h1", "h2", "h3", "h4", "h5", "h6"
+        ].includes(tag);
+
+        if (
+          isBlock &&
+          x !== (
+            direction === "rtl"
+              ? width - paddingRight
+              : paddingLeft
+          )
+        ) {
+          newLine(direction);
+        } else {
+          lineDirection = direction || lineDirection;
+        }
+
+        for (const child of element.childNodes) {
+          await walk(child, direction);
+        }
+
+        if (isBlock) {
+          newLine(direction);
+        }
+      }
+
+      resetLine(lineDirection);
+
+      for (const child of page.childNodes) {
+        await walk(child, lineDirection);
+      }
+
+      const finalHeight = Math.max(
+        estimatedHeight,
+        Math.ceil(maxY + paddingBottom)
+      );
+
+      if (finalHeight !== estimatedHeight) {
+        const resized = document.createElement("canvas");
+        resized.width = Math.ceil(width * scale);
+        resized.height = Math.ceil(finalHeight * scale);
+
+        const resizedContext = resized.getContext("2d");
+        if (!resizedContext) {
+          throw new Error("Could not resize the canvas.");
+        }
+
+        resizedContext.drawImage(canvas, 0, 0);
+
+        return {
+          canvas: resized,
+          width,
+          height: finalHeight
+        };
+      }
+
+      return {
+        canvas,
+        width,
+        height: estimatedHeight
+      };
+    }
+
+    async function saveBlob(blob, filename, mime) {
+      if (window.showSaveFilePicker) {
+        try {
+          const extension = filename.split(".").pop();
+
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: "Image file",
+              accept: {
+                [mime]: ["." + extension]
+              }
+            }]
+          });
+
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return true;
+        } catch (error) {
+          if (error && error.name === "AbortError") {
+            return false;
+          }
+
+          console.error("Could not use the save dialog:", error);
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = filename;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      setTimeout(function() {
+        URL.revokeObjectURL(url);
+      }, 0);
+
+      return true;
+    }
+
+    function canvasToBlob(canvas, mime, quality) {
+      return new Promise(function(resolve, reject) {
+        canvas.toBlob(function(blob) {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Could not create the image."));
+          }
+        }, mime, quality);
+      });
+    }
+
+    function gifPalette332() {
+      const palette = new Uint8Array(256 * 3);
+
+      for (let i = 0; i < 256; i++) {
+        const r = (i >> 5) & 7;
+        const g = (i >> 2) & 7;
+        const b = i & 3;
+
+        palette[i * 3] = Math.round((r * 255) / 7);
+        palette[i * 3 + 1] = Math.round((g * 255) / 7);
+        palette[i * 3 + 2] = Math.round((b * 255) / 3);
+      }
+
+      return palette;
+    }
+
+    function quantizeTo332(data) {
+      const indices = new Uint8Array(data.length / 4);
+
+      for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+        indices[p] =
+          ((data[i] >> 5) << 5) |
+          ((data[i + 1] >> 5) << 2) |
+          (data[i + 2] >> 6);
+      }
+
+      return indices;
+    }
+
+    function lzwEncodeGif(indices, minCodeSize) {
+      const clearCode = 1 << minCodeSize;
+      const endCode = clearCode + 1;
+      const output = [];
+
+      let bitBuffer = 0;
+      let bitCount = 0;
+
+      function writeCode(code, size) {
+        bitBuffer |= code << bitCount;
+        bitCount += size;
+
+        while (bitCount >= 8) {
+          output.push(bitBuffer & 255);
+          bitBuffer >>= 8;
+          bitCount -= 8;
+        }
+      }
+
+      let dictionary;
+      let nextCode;
+      let codeSize;
+
+      function resetDictionary() {
+        dictionary = new Map();
+
+        for (let i = 0; i < clearCode; i++) {
+          dictionary.set(String.fromCharCode(i), i);
+        }
+
+        nextCode = endCode + 1;
+        codeSize = minCodeSize + 1;
+      }
+
+      resetDictionary();
+      writeCode(clearCode, codeSize);
+
+      let phrase = String.fromCharCode(indices[0] || 0);
+
+      for (let i = 1; i < indices.length; i++) {
+        const char = String.fromCharCode(indices[i]);
+        const combined = phrase + char;
+
+        if (dictionary.has(combined)) {
+          phrase = combined;
+          continue;
+        }
+
+        writeCode(dictionary.get(phrase), codeSize);
+
+        if (nextCode < 4096) {
+          dictionary.set(combined, nextCode++);
+
+          if (
+            nextCode === (1 << codeSize) &&
+            codeSize < 12
+          ) {
+            codeSize++;
+          }
+        } else {
+          writeCode(clearCode, codeSize);
+          resetDictionary();
+        }
+
+        phrase = char;
+      }
+
+      writeCode(dictionary.get(phrase), codeSize);
+      writeCode(endCode, codeSize);
+
+      if (bitCount > 0) {
+        output.push(bitBuffer & 255);
+      }
+
+      return new Uint8Array(output);
+    }
+
+    function makeGifBlob(canvas) {
+      const width = canvas.width;
+      const height = canvas.height;
+
+      if (width > 65535 || height > 65535) {
+        throw new Error("The document is too large for GIF export.");
+      }
+
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        throw new Error("Could not read the canvas.");
+      }
+
+      const imageData =
+        context.getImageData(0, 0, width, height);
+
+      const palette = gifPalette332();
+      const indices = quantizeTo332(imageData.data);
+      const compressed = lzwEncodeGif(indices, 8);
+      const bytes = [];
+
+      function writeString(value) {
+        for (let i = 0; i < value.length; i++) {
+          bytes.push(value.charCodeAt(i));
+        }
+      }
+
+      function writeWord(value) {
+        bytes.push(value & 255, (value >> 8) & 255);
+      }
+
+      writeString("GIF89a");
+      writeWord(width);
+      writeWord(height);
+
+      bytes.push(0xF7, 0x00, 0x00);
+
+      for (let i = 0; i < palette.length; i++) {
+        bytes.push(palette[i]);
+      }
+
+      bytes.push(
+        0x21, 0xF9, 0x04,
+        0x00, 0x00, 0x00, 0x00, 0x00
+      );
+
+      bytes.push(0x2C);
+
+      writeWord(0);
+      writeWord(0);
+      writeWord(width);
+      writeWord(height);
+
+      bytes.push(0x00, 0x08);
+
+      for (let i = 0; i < compressed.length;) {
+        const length = Math.min(
+          255,
+          compressed.length - i
+        );
+
+        bytes.push(length);
+
+        for (let j = 0; j < length; j++) {
+          bytes.push(compressed[i + j]);
+        }
+
+        i += length;
+      }
+
+      bytes.push(0x00, 0x3B);
+
+      return new Blob(
+        [new Uint8Array(bytes)],
+        { type: "image/gif" }
+      );
+    }
+
+    async function exportDocumentAsImage(format) {
+      const rendered =
+        await renderDocumentToCanvas();
+
+      const name =
+        documentName.value.trim() || "untitled";
+
+      const baseName =
+        name.replace(
+          /\.(txt|charoite|jpg|jpeg|png|gif)$/i,
+          ""
+        );
+
+      if (format === "jpg") {
+        const blob = await canvasToBlob(
+          rendered.canvas,
+          "image/jpeg",
+          0.92
+        );
+
+        return saveBlob(
+          blob,
+          baseName + ".jpg",
+          "image/jpeg"
+        );
+      }
+
+      if (format === "png") {
+        const blob = await canvasToBlob(
+          rendered.canvas,
+          "image/png"
+        );
+
+        return saveBlob(
+          blob,
+          baseName + ".png",
+          "image/png"
+        );
+      }
+
+      if (format === "gif") {
+        const blob =
+          makeGifBlob(rendered.canvas);
+
+        return saveBlob(
+          blob,
+          baseName + ".gif",
+          "image/gif"
+        );
+      }
+
+      throw new Error(
+        "Unsupported image export format."
+      );
+    }
+
+    function handleImageExport(format) {
+      exportDocumentAsImage(format)
+        .then(function(saved) {
+          if (saved) {
+            saveState();
+          }
+
+          closeMenus();
+        })
+        .catch(function(error) {
+          if (error && error.name !== "AbortError") {
+            console.error(
+              "Could not export the document as " +
+              format.toUpperCase() + ":",
+              error
+            );
+          }
+
+          closeMenus();
+        });
+    }
+
+    exportJpgButton.addEventListener(
+      "click",
+      function() {
+        closeMenus();
+        handleImageExport("jpg");
+      }
+    );
+
+    exportPngButton.addEventListener(
+      "click",
+      function() {
+        closeMenus();
+        handleImageExport("png");
+      }
+    );
+
+    exportGifButton.addEventListener(
+      "click",
+      function() {
+        closeMenus();
+        handleImageExport("gif");
+      }
+    );;
+
+    copyButton.addEventListener(
+      "click",
+      async function() {
+
+        const selection =
+          window.getSelection();
+
+        const selectedText =
+          selection
+            ? selection.toString()
+            : "";
+
+        try {
+
+          await navigator.clipboard.writeText(
+            selectedText || page.innerText
+          );
+
+        } catch {
+
+          try {
+            document.execCommand("copy");
+          } catch {
+          }
+        }
+
+        closeMenus();
+      }
+    );
+
+
+
+    pasteButton.addEventListener(
+      "click",
+      async function() {
+        page.focus();
+
+        try {
+          const clipboard = await navigator.clipboard.read();
+          const imageType = clipboard
+            .flatMap(function(item) { return item.types; })
+            .find(function(type) { return type.startsWith("image/"); });
+
+          if (imageType) {
+            const blob = await clipboard[0].getType(imageType);
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+              const image = document.createElement("img");
+              image.src = e.target.result;
+              image.style.maxWidth = "100%";
+              image.style.height = "auto";
+              image.draggable = true;
+              document.execCommand("insertHTML", false, image.outerHTML);
+              saveState();
+            };
+
+            reader.readAsDataURL(blob);
+          } else {
+            const text = await navigator.clipboard.readText();
+            document.execCommand("insertText", false, text);
+            updateTextDirection();
+            saveState();
+          }
+        } catch {
+        }
+
+        closeMenus();
+      }
+    );
+
+
+    page.addEventListener(
+      "paste",
+      function(event) {
+        const clipboard = event.clipboardData;
+
+        if (!clipboard) {
+          return;
+        }
+
+        const imageItem = Array.from(clipboard.items).find(function(item) {
+          return item.type.startsWith("image/");
+        });
+
+        if (imageItem) {
+          const file = imageItem.getAsFile();
+
+          if (!file) {
+            return;
+          }
+
+          event.preventDefault();
+
+          const reader = new FileReader();
+
+          reader.onload = function(e) {
+            const image = document.createElement("img");
+            image.src = e.target.result;
+            image.style.maxWidth = "100%";
+            image.style.height = "auto";
+            image.draggable = true;
+
+            const selection = window.getSelection();
+
+            if (!selection || !selection.rangeCount) {
+              page.appendChild(image);
+              saveState();
+              return;
+            }
+
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(image);
+            range.setStartAfter(image);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            saveState();
+          };
+
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        event.preventDefault();
+
+        const text = clipboard.getData("text/plain");
+
+        document.execCommand(
+          "insertText",
+          false,
+          text
+        );
+
+        updateTextDirection();
+        saveState();
+      }
+    );
+
+
+    fontButton.addEventListener(
+      "click",
+      function() {
+
+        fontInput.click();
+
+        closeMenus();
+      }
+    );
+
+
+    fontInput.addEventListener(
+      "change",
+      function(event) {
+
+        const file =
+          event.target.files[0];
+
+        if (!file) {
+          return;
+        }
+
+
+        const fontName =
+          "luni-custom-font";
+
+
+        const reader =
+          new FileReader();
+
+
+        reader.onload =
+          function(e) {
+
+            const dataUrl = e.target.result;
+
+            if (
+              typeof dataUrl !== "string" ||
+              !/^data:[^;,]+;base64,[A-Za-z0-9+/=]+$/.test(dataUrl)
+            ) {
+              return;
+            }
+
+            installCustomFont(
+              fontName,
+              dataUrl
+            );
+
+            saveState();
+          };
+
+
+        reader.readAsDataURL(file);
+
+        fontInput.value = "";
+      }
+    );
+
+
+
+    function installCustomFont(
+      fontName,
+      fontData
+    ) {
+
+      customFontName = fontName;
+      customFontData = fontData;
+
+      const oldStyle =
+        document.getElementById(
+          "custom-font-style"
+        );
+
+      if (oldStyle) {
+        oldStyle.remove();
+      }
+
+      const style =
+        document.createElement("style");
+
+      style.id =
+        "custom-font-style";
+
+      style.textContent = `
+        @font-face {
+          font-family: "${fontName}";
+          src: url("${fontData}");
+        }
+
+        .page {
+          font-family:
+            "${fontName}",
+            var(--ui-font);
+        }
+      `;
+
+      document.head.appendChild(style);
+    }
+
+
+
+    fontSizeInput.addEventListener(
+      "input",
+      function() {
+
+        let size =
+          Number(
+            fontSizeInput.value
+          );
+
+        if (!size) {
+          size = 16;
+        }
+
+        size =
+          Math.max(
+            6,
+            Math.min(200, size)
+          );
+
+        page.style.fontSize =
+          size + "px";
+
+        saveState();
+      }
+    );
+
+
+
+    function format(command) {
+
+      page.focus();
+
+      document.execCommand(
+        command,
+        false,
+        null
+      );
+
+      saveState();
+    }
+
+
+    boldButton.addEventListener(
+      "click",
+      () => {
+        format("bold")
+        closeMenus();
+      }
+    );
+
+
+    italicButton.addEventListener(
+      "click",
+      () => {
+        format("italic");
+        closeMenus();
+      }
+    );
+
+
+    underlineButton.addEventListener(
+      "click",
+      () => {
+        format("underline");
+        closeMenus();
+      }
+    );
+
+
+
+    page.addEventListener(
+      "input",
+      function() {
+        updateTextDirection();
+        saveState();
+      }
+    );
+
+
+    documentName.addEventListener(
+      "input",
+      function() {
+        saveState();
+      }
+    );
+
+
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+
+        if (
+          !(event.ctrlKey || event.metaKey)
+        ) {
+          return;
+        }
+
+        const key =
+          event.key.toLowerCase();
+
+
+        if (key === "b") {
+
+          event.preventDefault();
+
+          format("bold");
+        }
+
+
+        if (key === "i") {
+
+          event.preventDefault();
+
+          format("italic");
+        }
+
+
+        if (key === "u") {
+
+          event.preventDefault();
+
+          format("underline");
+        }
+
+
+        if (key === "s") {
+
+          event.preventDefault();
+
+          saveButton.click();
+        }
+      }
+    );
+
+    document.addEventListener("keydown", function(event) {
+      const key = event.key.toLowerCase();
+      const isCmdOrCtrl = event.ctrlKey || event.metaKey;
+
+      if (event.key.startsWith("F") && event.key.length > 1) {
+        event.preventDefault();
+        return;
+      }
+
+      if (isCmdOrCtrl) {
+        const allowedKeys = [
+          "c", "v", "x", "a", "z", "y",
+          "b", "i", "u",
+          "arrowleft", "arrowright", "arrowup", "arrowdown",
+          "home", "end", "pageup", "pagedown", "backspace", "delete"
+        ];
+
+        if (allowedKeys.includes(key)) {
+          return;
+        }
+
+        event.preventDefault();
+      }
+    }, true);
+
+    document.addEventListener("contextmenu", function(event) {
+      event.preventDefault();
+    }, true);
+
+    document.addEventListener("mousedown", function(event) {
+
+      if (event.button === 2 || event.button === 1) {
+        event.preventDefault();
+
+        const leftClickEvent = new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          detail: 1,
+          screenX: event.screenX,
+          screenY: event.screenY,
+          clientX: event.clientX,
+          clientY: event.clientY,
+          ctrlKey: event.ctrlKey,
+          altKey: event.altKey,
+          shiftKey: event.shiftKey,
+          metaKey: event.metaKey,
+          button: 0,
+          buttons: 1
+        });
+
+        event.target.dispatchEvent(leftClickEvent);
+      }
+    }, true);
+
+    loadState();
+
+  </script>
+
 </body>
 </html>

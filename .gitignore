@@ -5,3 +5,4 @@ compiled/
 *.log
 Thumbs.db
 .DS_Store
+*.jks

@@ -1,2 +1,2 @@
 # Charoite
-A soft and simple word processor.
+An easy-to-use and simple word processor.
